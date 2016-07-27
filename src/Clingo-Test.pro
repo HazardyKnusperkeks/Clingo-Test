@@ -26,3 +26,6 @@ DEFINES		*= WITH_THREADS=1
 
 DESTDIR		 = ../bin
 
+OTHER_FILES	 = ../program/graph_wg.lp\
+			   ../program/mailbot.lp
+
