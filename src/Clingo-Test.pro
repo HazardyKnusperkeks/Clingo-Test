@@ -10,7 +10,7 @@ INCLUDEPATH	*= $(HOME)/clingo/libclasp\
 			   $(HOME)/clingo/liblp\
 			   $(HOME)/clingo/libprogram_opts
 
-LIBS		*= -L$(HOME)/clingo/build/release/\
+LIBS		*= -L$(HOME)/clingo/build/debug/\
 			   -lclingo\
 			   -lclasp\
 			   -lgringo\
