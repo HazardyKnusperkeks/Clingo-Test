@@ -24,3 +24,5 @@ LIBS		*= -lpthread\
 
 DEFINES		*= WITH_THREADS=1
 
+DESTDIR		 = ../bin
+
