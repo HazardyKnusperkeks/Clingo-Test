@@ -9,5 +9,6 @@ int main(/*int argc, char *argv[]*/) {
 	Clasp::Cli::ClaspCliConfig cliConfig;
 
 	ClingoControl control(scripts, true, &claspFacade, cliConfig, nullptr, nullptr, nullptr, 65535);
+	control.load("../program/graph_wg.lp");
 	return 0;
 }
