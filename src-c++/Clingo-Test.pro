@@ -24,6 +24,7 @@ LIBS		*= -lpthread\
 
 DEFINES		*= WITH_THREADS=1
 
+TARGET		 = Clingo-Test-C++
 DESTDIR		 = ../bin
 
 OTHER_FILES	 = ../program/graph_wg.lp\
