@@ -75,6 +75,7 @@ int main(int argc, char *argv[]) {
 		};
 	
 	setT();
+	++t;
 	
 	clingo_solve_async_t *async = nullptr;
 	bool running = false;
@@ -155,9 +156,9 @@ int main(int argc, char *argv[]) {
 	QObject::connect(&stop,  &QPushButton::clicked,      stopSolving);
 	QObject::connect(&start, &QPushButton::clicked,      startSolving);
 	QObject::connect(&incr,  &QPushButton::clicked,      [&setT,&t,&incr](void) noexcept {
-			++t;
 			incr.setText("Incr. t: " + QString::number(t));
 			setT();
+			++t;
 			return;
 		});
 	QObject::connect(&incr,  &QPushButton::clicked,      &start, &QPushButton::click);
