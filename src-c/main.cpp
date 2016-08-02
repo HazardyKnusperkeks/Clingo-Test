@@ -60,17 +60,25 @@ int main(int argc, char *argv[]) {
 	
 	setT();
 	
-	clingo_part_t parts[] = {{"base", nullptr, 0},
-		{"state", stateParams, sizeof(stateParams) / sizeof(clingo_symbol_t)},
-		{"transition", transitionParams, sizeof(transitionParams) / sizeof(clingo_symbol_t)},
-		{"query", queryParams, sizeof(queryParams) / sizeof(clingo_symbol_t)},
-		{"finalize", finalizeParams, sizeof(finalizeParams) / sizeof(clingo_symbol_t)}};
+	clingo_part_t tParts[] = {
+			{"state", stateParams, sizeof(stateParams) / sizeof(clingo_symbol_t)},
+			{"transition", transitionParams, sizeof(transitionParams) / sizeof(clingo_symbol_t)},
+			{"query", queryParams, sizeof(queryParams) / sizeof(clingo_symbol_t)},
+			{"finalize", finalizeParams, sizeof(finalizeParams) / sizeof(clingo_symbol_t)}
+		};
 	
-	switch ( clingo_control_ground(control, parts, sizeof(parts) / sizeof(clingo_part_t), nullptr, nullptr) ) {
+	clingo_part_t basePart[1] = {{"base", nullptr, 0}};
+	switch ( clingo_control_ground(control, basePart, 1, nullptr, nullptr) ) {
 		case clingo_error_bad_alloc : return 10;
 		case clingo_error_success   : break;
 		default                     : return 11; //Should never happen.
-	} //switch ( clingo_control_ground(control, parts, sizeof(parts) / sizeof(clingo_part_t), nullptr, nullptr) )
+	} //switch ( clingo_control_ground(control, basePart, 1, nullptr, nullptr) )
+	
+	switch ( clingo_control_ground(control, tParts, sizeof(tParts) / sizeof(clingo_part_t), nullptr, nullptr) ) {
+		case clingo_error_bad_alloc : return 12;
+		case clingo_error_success   : break;
+		default                     : return 13; //Should never happen.
+	} //switch ( clingo_control_ground(control, tParts, sizeof(tParts) / sizeof(clingo_part_t), nullptr, nullptr) )
 	
 	clingo_solve_async_t *async = nullptr;
 	bool running = false;
