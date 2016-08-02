@@ -4,10 +4,14 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListView>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QStringListModel>
 #include <QTimer>
+
+QStringListModel *itemModel = nullptr;
 
 int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
@@ -57,12 +61,18 @@ int main(int argc, char *argv[]) {
 	QLabel result(&widget);
 	QPushButton stop("Stop",   &widget);
 	QPushButton start("Start", &widget);
+	QListView view(&widget);
+	QStringListModel model;
+	
+	view.setModel(itemModel = &model);
+	
 	QTimer timer(&widget);
 	
 	layout.addWidget(&status, 0, 0);
 	layout.addWidget(&stop,   0, 1);
 	layout.addWidget(&start,  0, 2);
 	layout.addWidget(&result, 1, 0, 1, -1);
+	layout.addWidget(&view,   2, 0, 1, -1);
 	
 	auto updateStatus = [&result,&running,&status](const QString& resultText = QString()) noexcept {
 			status.setText(running ? "Solving" : "Finished");
@@ -72,43 +82,26 @@ int main(int argc, char *argv[]) {
 			return;
 		};
 	
-	auto onModel    = [](clingo_model_t *model, void */*data*/, bool */*goOn*/) noexcept -> clingo_error_t {
-			clingo_error_t ret = 0;
-			clingo_symbol_t *atoms = NULL;
-			size_t atoms_n;
-			clingo_symbol_t const *it, *ie;
-			char *str = NULL;
-			size_t str_n = 0;
-			// determine the number of (shown) symbols in the model
-			if ((ret = clingo_model_symbols_size(model, clingo_show_type_shown, &atoms_n))) { goto error; }
-			// allocate required memory to hold all the symbols
-			if (!(atoms = (clingo_symbol_t*)malloc(sizeof(*atoms) * atoms_n))) { goto error; }
-			// retrieve the symbols in the model
-			if ((ret = clingo_model_symbols(model, clingo_show_type_shown, atoms, atoms_n))) { goto error; }
-			printf("Model:");
-			for (it = atoms, ie = atoms + atoms_n; it != ie; ++it) {
-			size_t n;
-			char *str_new;
-			// determine size of the string representation of the next symbol in the model
-			if ((ret = clingo_symbol_to_string_size(*it, &n))) { goto error; }
-			if (str_n < n) {
-			// allocate required memory to hold the symbol's string
-			if (!(str_new = (char*)realloc(str, sizeof(*str) * n))) { goto error; }
-			str = str_new;
-			str_n = n;
-			}
-			// retrieve the symbol's string
-			if (clingo_symbol_to_string(*it, str, n)) { goto error; }
-			printf(" %s", str);
-			}
-			printf("\n");
-			goto out;
-			error:
-			if (!ret) { ret = clingo_error_unknown; }
-			out:
-			if (atoms) { free(atoms); }
-			if (str)   { free(str); }
-			return ret;
+	auto onModel    = [](clingo_model_t *model, void */*data*/, bool *goOn) noexcept -> clingo_error_t {
+			*goOn = false;
+			QStringList list;
+			
+			size_t atomsCount = 0;
+			clingo_model_symbols_size(model, clingo_show_type_shown, &atomsCount);
+			clingo_symbol_t atoms[atomsCount];
+			clingo_model_symbols(model, clingo_show_type_shown, atoms, atomsCount);
+			
+			list.reserve(atomsCount);
+			
+			for ( const auto& atom : atoms ) {
+				size_t strSize = 0;
+				clingo_symbol_to_string_size(atom, &strSize);
+				char str[strSize];
+				clingo_symbol_to_string(atom, str, strSize);
+				list.append(str);
+			} //for ( const auto& atom : atoms )
+			
+			itemModel->setStringList(list);
 			return 0;
 		};
 	auto onFinished = [](clingo_solve_result_bitset_t /*result*/, void *data) noexcept -> clingo_error_t {
