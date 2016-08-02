@@ -50,14 +50,15 @@ int main(int argc, char *argv[]) {
 	clingo_symbol_t *queryParams = tParams;
 	clingo_symbol_t *finalizeParams = tParams;
 	
-	auto setT = [&tParams,&commitParams,&set_eventParams](const int t) noexcept {
+	int t = 0;
+	auto setT = [&tParams,&commitParams,&set_eventParams,&t](void) noexcept {
 			clingo_symbol_create_number(t, &tParams[0]);
 			clingo_symbol_create_number(t, &commitParams[2]);
 			clingo_symbol_create_number(t, &set_eventParams[2]);
 			return;
 		};
 	
-	setT(0);
+	setT();
 	
 	clingo_part_t parts[] = {{"base", nullptr, 0},
 		{"state", stateParams, sizeof(stateParams) / sizeof(clingo_symbol_t)},
