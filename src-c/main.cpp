@@ -50,15 +50,12 @@ int main(int argc, char *argv[]) {
 	clingo_symbol_t *queryParams = tParams;
 	clingo_symbol_t *finalizeParams = tParams;
 	
-	int t = 0;
-	auto setT = [&tParams,&commitParams,&set_eventParams,&t](void) noexcept {
-			clingo_symbol_create_number(t, &tParams[0]);
-			clingo_symbol_create_number(t, &commitParams[2]);
-			clingo_symbol_create_number(t, &set_eventParams[2]);
-			return;
-		};
-	
-	setT();
+	clingo_part_t basePart[1] = {{"base", nullptr, 0}};
+	switch ( clingo_control_ground(control, basePart, 1, nullptr, nullptr) ) {
+		case clingo_error_bad_alloc : return 10;
+		case clingo_error_success   : break;
+		default                     : return 11; //Should never happen.
+	} //switch ( clingo_control_ground(control, basePart, 1, nullptr, nullptr) )
 	
 	clingo_part_t tParts[] = {
 			{"state", stateParams, sizeof(stateParams) / sizeof(clingo_symbol_t)},
@@ -67,18 +64,17 @@ int main(int argc, char *argv[]) {
 			{"finalize", finalizeParams, sizeof(finalizeParams) / sizeof(clingo_symbol_t)}
 		};
 	
-	clingo_part_t basePart[1] = {{"base", nullptr, 0}};
-	switch ( clingo_control_ground(control, basePart, 1, nullptr, nullptr) ) {
-		case clingo_error_bad_alloc : return 10;
-		case clingo_error_success   : break;
-		default                     : return 11; //Should never happen.
-	} //switch ( clingo_control_ground(control, basePart, 1, nullptr, nullptr) )
+	int t = 0;
+	auto setT = [&control,&tParams,&commitParams,&set_eventParams,&t,&tParts](void) noexcept {
+			clingo_symbol_create_number(t, &tParams[0]);
+			clingo_symbol_create_number(t, &commitParams[2]);
+			clingo_symbol_create_number(t, &set_eventParams[2]);
+			
+			clingo_control_ground(control, tParts, sizeof(tParts) / sizeof(clingo_part_t), nullptr, nullptr);
+			return;
+		};
 	
-	switch ( clingo_control_ground(control, tParts, sizeof(tParts) / sizeof(clingo_part_t), nullptr, nullptr) ) {
-		case clingo_error_bad_alloc : return 12;
-		case clingo_error_success   : break;
-		default                     : return 13; //Should never happen.
-	} //switch ( clingo_control_ground(control, tParts, sizeof(tParts) / sizeof(clingo_part_t), nullptr, nullptr) )
+	setT();
 	
 	clingo_solve_async_t *async = nullptr;
 	bool running = false;
