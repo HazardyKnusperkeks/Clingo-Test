@@ -85,6 +85,7 @@ int main(int argc, char *argv[]) {
 	QLabel result(&widget);
 	QPushButton stop("Stop",   &widget);
 	QPushButton start("Start", &widget);
+	QPushButton incr("Incr. t: 0", &widget);
 	QListView view(&widget);
 	QStringListModel model;
 	
@@ -95,6 +96,7 @@ int main(int argc, char *argv[]) {
 	layout.addWidget(&status, 0, 0);
 	layout.addWidget(&stop,   0, 1);
 	layout.addWidget(&start,  0, 2);
+	layout.addWidget(&incr,   0, 3);
 	layout.addWidget(&result, 1, 0, 1, -1);
 	layout.addWidget(&view,   2, 0, 1, -1);
 	
@@ -152,6 +154,13 @@ int main(int argc, char *argv[]) {
 	QObject::connect(&app,   &QApplication::aboutToQuit, stopSolving);
 	QObject::connect(&stop,  &QPushButton::clicked,      stopSolving);
 	QObject::connect(&start, &QPushButton::clicked,      startSolving);
+	QObject::connect(&incr,  &QPushButton::clicked,      [&setT,&t,&incr](void) noexcept {
+			++t;
+			incr.setText("Incr. t: " + QString::number(t));
+			setT();
+			return;
+		});
+	QObject::connect(&incr,  &QPushButton::clicked,      &start, &QPushButton::click);
 	
 	timer.setInterval(5);
 	timer.setSingleShot(false);
