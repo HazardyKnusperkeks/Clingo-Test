@@ -41,10 +41,29 @@ int main(int argc, char *argv[]) {
 		default                     : return 9; //Should never happen.
 	} //switch ( clingo_control_load(control, "../program/mailbot.lp") )
 	
-	clingo_symbol_t stateParams[] = {0};
-	clingo_symbol_create_number(0, &stateParams[0]);
+	clingo_symbol_t tParams[1];
+	clingo_symbol_t commitParams[3];
+	clingo_symbol_t set_eventParams[3];
+	
+	clingo_symbol_t *stateParams = tParams;
+	clingo_symbol_t *transitionParams = tParams;
+	clingo_symbol_t *queryParams = tParams;
+	clingo_symbol_t *finalizeParams = tParams;
+	
+	auto setT = [&tParams,&commitParams,&set_eventParams](const int t) noexcept {
+			clingo_symbol_create_number(t, &tParams[0]);
+			clingo_symbol_create_number(t, &commitParams[2]);
+			clingo_symbol_create_number(t, &set_eventParams[2]);
+			return;
+		};
+	
+	setT(0);
+	
 	clingo_part_t parts[] = {{"base", nullptr, 0},
-		{"state", stateParams, sizeof(stateParams) / sizeof(clingo_symbol_t)}};
+		{"state", stateParams, sizeof(stateParams) / sizeof(clingo_symbol_t)},
+		{"transition", transitionParams, sizeof(transitionParams) / sizeof(clingo_symbol_t)},
+		{"query", queryParams, sizeof(queryParams) / sizeof(clingo_symbol_t)},
+		{"finalize", finalizeParams, sizeof(finalizeParams) / sizeof(clingo_symbol_t)}};
 	
 	switch ( clingo_control_ground(control, parts, sizeof(parts) / sizeof(clingo_part_t), nullptr, nullptr) ) {
 		case clingo_error_bad_alloc : return 10;
