@@ -134,13 +134,13 @@ int main(int argc, char *argv[]) {
 			} //if ( async )
 			return;
 		};
-	auto startSolving = [&async,&control,&onModel,&onFinished,&running,&updateStatus](void) noexcept {
+	auto startSolving = [&async,&control,&onModel,&onFinished,&running,&timer,&updateStatus](void) noexcept {
 			if ( async ) {
 				return;
 			} //if ( async )
-			clingo_control_solve_async(control, onModel, nullptr, onFinished, &running, nullptr, 0, &async);
 			running = true;
-			updateStatus();
+			updateStatus(" ");
+			clingo_control_solve_async(control, onModel, nullptr, onFinished, &running, nullptr, 0, &async);
 			return;
 		};
 		
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
 	QObject::connect(&stop,  &QPushButton::clicked,      stopSolving);
 	QObject::connect(&start, &QPushButton::clicked,      startSolving);
 	
-	timer.setInterval(50);
+	timer.setInterval(5);
 	timer.setSingleShot(false);
 	
 	QObject::connect(&timer, &QTimer::timeout, [&async,&running,&updateStatus](void) noexcept {
