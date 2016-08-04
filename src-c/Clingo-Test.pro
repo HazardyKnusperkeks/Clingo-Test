@@ -12,16 +12,8 @@ INCLUDEPATH	*= $(HOME)/clingo/libclasp\
 			   $(HOME)/clingo/libprogram_opts
 
 LIBS		*= -L$(HOME)/clingo/build/debug/\
-			   -lclingo\
-			   -lclasp\
-			   -lgringo\
-			   -llp\
-			   -lprogram_opts\
-			   -lreify
-
-LIBS		*= -lpthread\
-			   -lpython2.7\
-			   -llua5.1-c++
+			   -Wl,-rpath=$(HOME)/clingo/build/debug/\
+			   -lclingo
 
 DEFINES		*= WITH_THREADS=1
 
