@@ -87,6 +87,8 @@ int main(int argc, char *argv[]) {
 	QPushButton stop("Stop",   &widget);
 	QPushButton start("Start", &widget);
 	QPushButton incr("Incr. t: 0", &widget);
+	QLineEdit edit(&widget);
+	QPushButton add("Add", &widget);
 	QListView view(&widget);
 	QStringListModel model;
 	
@@ -99,7 +101,9 @@ int main(int argc, char *argv[]) {
 	layout.addWidget(&start,  0, 2);
 	layout.addWidget(&incr,   0, 3);
 	layout.addWidget(&result, 1, 0, 1, -1);
-	layout.addWidget(&view,   2, 0, 1, -1);
+	layout.addWidget(&edit,   2, 0, 1,  3);
+	layout.addWidget(&add,    2, 3);
+	layout.addWidget(&view,   3, 0, 1, -1);
 	
 	auto updateStatus = [&result,&running,&status](const QString& resultText = QString()) noexcept {
 			status.setText(running ? "Solving" : "Finished");
@@ -142,10 +146,11 @@ int main(int argc, char *argv[]) {
 			} //if ( async )
 			return;
 		};
-	auto startSolving = [&async,&control,&onModel,&onFinished,&running,&timer,&updateStatus](void) noexcept {
+	auto startSolving = [&async,&control,&onModel,&onFinished,&running,&timer,&updateStatus,&model](void) noexcept {
 			if ( async ) {
 				return;
 			} //if ( async )
+			model.setStringList(QStringList());
 			running = true;
 			updateStatus(" ");
 			clingo_control_solve_async(control, onModel, nullptr, onFinished, &running, nullptr, 0, &async);
@@ -162,6 +167,35 @@ int main(int argc, char *argv[]) {
 			return;
 		});
 	QObject::connect(&incr,  &QPushButton::clicked,      &start, &QPushButton::click);
+	QObject::connect(&add,   &QPushButton::clicked,      [&control,&edit,&t](void) noexcept {
+			const QStringList text(edit.text().split(' '));
+			edit.clear();
+			
+			switch ( text.size() ) {
+				case 1 : {
+					
+					break;
+				} //case 1
+				case 3 : {
+					clingo_symbol_t bring, bringArgs[2];
+					
+					for ( int i = 0; i < 2; ++i ) {
+						clingo_symbol_create_id(text.at(i).toStdString().c_str(), true, bringArgs + i);
+					} //for ( int i = 0; i < 2; ++i )
+					clingo_symbol_create_function("bring", bringArgs, 2, true, &bring);
+					
+					clingo_symbol_t setEventParams[3] = {0, bring, 0};
+					clingo_symbol_create_number(0, &setEventParams[0]);
+					clingo_symbol_create_number(t, &setEventParams[2]);
+					clingo_part_t setEvent = {"set_event", setEventParams, sizeof(setEventParams) / sizeof(clingo_symbol_t)};
+					clingo_control_ground(control, &setEvent, 1, nullptr, nullptr);
+					break;
+				} //case 3
+				default : break; //Print error
+			} //switch ( text.size() )
+			return;
+		});
+	QObject::connect(&add,   &QPushButton::clicked,      &start, &QPushButton::click);
 	
 	timer.setInterval(5);
 	timer.setSingleShot(false);
