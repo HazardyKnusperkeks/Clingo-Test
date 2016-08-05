@@ -10,12 +10,12 @@
 #include <QPushButton>
 #include <QStringListModel>
 
-QDebug& operator<<(QDebug& d, const Clingo::Symbol& s) noexcept {
+QDebug operator<<(QDebug d, const Clingo::Symbol& s) noexcept {
 	d.nospace()<<s.to_string().c_str();
 	return d;
 }
 
-QDebug& operator<<(QDebug& d, const Clingo::SymbolSpan& s) noexcept {
+QDebug operator<<(QDebug d, const Clingo::SymbolSpan& s) noexcept {
 	d.nospace()<<'[';
 	
 	const int size = s.size();
@@ -30,12 +30,12 @@ QDebug& operator<<(QDebug& d, const Clingo::SymbolSpan& s) noexcept {
 	return d;
 }
 
-QDebug& operator<<(QDebug& d, const Clingo::Part& p) noexcept {
+QDebug operator<<(QDebug d, const Clingo::Part& p) noexcept {
 	d.nospace()<<p.name()<<": "<<p.params();
 	return d;
 }
 
-QDebug& operator<<(QDebug& d, const Clingo::PartSpan& s) noexcept {
+QDebug operator<<(QDebug d, const Clingo::PartSpan& s) noexcept {
 	d.nospace()<<'['<<endl;
 	
 	const int size = s.size();
@@ -76,6 +76,7 @@ int main(int argc, char *argv[]) {
 	control.load("../program/graph_wg.lp");
 	control.load("../program/mailbot.lp");
 	
+	qDebug()<<"Grounding:"<<"base"<<Clingo::SymbolSpan();
 	control.ground({{"base", Clingo::SymbolSpan()}});
 	
 	Clingo::Symbol horizon(Clingo::Number(0)), step(Clingo::Number(1));
@@ -86,6 +87,7 @@ int main(int argc, char *argv[]) {
 	Clingo::Symbol query(Clingo::Function("query", horizonSpan, true));
 	
 	auto groundHorizon = [&](void) noexcept {
+			qDebug()<<"Grounding:"<<horizonParts;
 			control.ground(horizonParts);
 			control.assign_external(query, Clingo::TruthValue::True);
 			return;
@@ -145,10 +147,14 @@ int main(int argc, char *argv[]) {
 	auto solve = [&](void) noexcept {
 			status.setText("Solving");
 			result.setText(QString());
-			while ( control.solve(onModel).is_unsatisfiable() ) {
+			Clingo::SolveResult res(control.solve(onModel));
+			qDebug()<<res;
+			while ( res.is_unsatisfiable() ) {
 				result.setText("Unsatisfied");
 				incrHorizon();
-			} //while ( control.solve(onModel).is_unsatisfiable() )
+				res = control.solve(onModel);
+				qDebug()<<res;
+			} //while ( res.is_unsatisfiable() )
 			result.setText("Satisfied");
 			status.setText("Finished");
 			return;
@@ -156,11 +162,8 @@ int main(int argc, char *argv[]) {
 	
 	auto nextStep = [&](void) noexcept {
 			bool haveToSolve = false;
-			control.ground(stepParts);
-			if ( step >= horizon ) {
-				haveToSolve = true;
-				incrHorizon();
-			} //if ( step >= horizon )
+//			qDebug()<<"Grounding:"<<stepParts;
+//			control.ground(stepParts);
 			const int currentStep = step.number(), newStep = currentStep + 1;
 			parse(currentStep);
 			stepLabel.setText("Step: " + QString::number(newStep));
