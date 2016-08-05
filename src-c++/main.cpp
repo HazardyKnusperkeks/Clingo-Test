@@ -1,5 +1,7 @@
 #include <clingo.hh>
 
+#define QT_NO_DEBUG_OUTPUT
+
 #include <QApplication>
 #include <QDebug>
 #include <QGridLayout>
