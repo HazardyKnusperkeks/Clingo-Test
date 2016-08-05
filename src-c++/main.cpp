@@ -1,4 +1,7 @@
+#include <clingo.hh>
+
 #include <QApplication>
+#include <QDebug>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -9,6 +12,38 @@
 
 int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
+	
+	Clingo::Control control;
+	
+	control.load("../program/graph_wg.lp");
+	control.load("../program/mailbot.lp");
+	
+	control.ground({{"base", {{}}}}); //That looks nice, eh? ;)
+	
+	int horizon = 0, step = 0;
+	
+	Clingo::Symbol t(Clingo::Number(horizon));
+	Clingo::SymbolSpan tSpan(&t, 1);
+	Clingo::PartSpan tParts{{"state", tSpan}, {"transition", tSpan}, {"query", tSpan}};
+	
+	Clingo::Symbol query(Clingo::Function("query", tSpan, true));
+	
+	auto groundT = [&](void) noexcept {
+			control.ground(tParts);
+			control.assign_external(query, Clingo::TruthValue::True);
+			return;
+		};
+	
+	auto incrT = [&](void) noexcept {
+			control.assign_external(query, Clingo::TruthValue::False);
+			++horizon;
+			t = Clingo::Number(horizon);
+			query = Clingo::Function("query", tSpan, true);
+			groundT();
+			return;
+		};
+	
+	groundT();
 	
 	QWidget widget;
 	QGridLayout layout(&widget);
