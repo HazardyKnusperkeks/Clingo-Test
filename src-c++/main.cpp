@@ -10,6 +10,63 @@
 #include <QPushButton>
 #include <QStringListModel>
 
+QDebug& operator<<(QDebug& d, const Clingo::Symbol& s) noexcept {
+	d.nospace()<<s.to_string().c_str();
+	return d;
+}
+
+QDebug& operator<<(QDebug& d, const Clingo::SymbolSpan& s) noexcept {
+	d.nospace()<<'[';
+	
+	const int size = s.size();
+	if ( size > 0 ) {
+		for ( int i = 0; i < size - 1; ++i ) {
+			d.nospace()<<s[i]<<", ";
+		} //for ( int i = 0; i < size - 1; ++i )
+		d.nospace()<<s.back();
+	} //if ( size > 0 )
+	
+	d.nospace()<<']';
+	return d;
+}
+
+QDebug& operator<<(QDebug& d, const Clingo::Part& p) noexcept {
+	d.nospace()<<p.name()<<": "<<p.params();
+	return d;
+}
+
+QDebug& operator<<(QDebug& d, const Clingo::PartSpan& s) noexcept {
+	d.nospace()<<'['<<endl;
+	
+	const int size = s.size();
+	if ( size > 0 ) {
+		for ( int i = 0; i < size; ++i ) {
+			d.nospace()<<'\t'<<s[i]<<endl;
+		} //for ( int i = 0; i < size; ++i )
+	} //if ( size > 0 )
+	
+	d.nospace()<<']';
+	return d;
+}
+
+QDebug operator<<(QDebug d, const Clingo::SolveResult& res) noexcept {
+	QStringList list;
+	if ( res.is_satisfiable() ) {
+		list.append("SAT");
+	} //if ( res.is_satisfiable() )
+	if ( res.is_unsatisfiable() ) {
+		list.append("UNSAT");
+	} //if ( res.is_unsatisfiable() )operator
+	if ( res.is_interrupted() ) {
+		list.append("INT");
+	} //if ( res.is_interrupted() )
+	if ( res.is_exhausted() ) {
+		list.append("EX");
+	} //if ( res.is_exhausted() )
+	d<<list.join(" | ");
+	return d;
+}
+
 int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
 	
