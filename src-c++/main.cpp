@@ -124,6 +124,7 @@ int main(int argc, char *argv[]) {
 			control.assign_external(query, Clingo::TruthValue::False);
 			const int newHorizon = horizon.number() + 1;
 			horizonLabel.setText("Horizon: " + QString::number(newHorizon));
+			QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 			horizon = Clingo::Number(newHorizon);
 			query = Clingo::Function("query", horizonSpan, true);
 			groundHorizon();
@@ -149,16 +150,19 @@ int main(int argc, char *argv[]) {
 	auto solve = [&](void) noexcept {
 			status.setText("Solving");
 			result.setText(QString());
+			QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 			Clingo::SolveResult res(control.solve(onModel));
 			qDebug()<<res;
 			while ( res.is_unsatisfiable() ) {
 				result.setText("Unsatisfied");
+				QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 				incrHorizon();
 				res = control.solve(onModel);
 				qDebug()<<res;
 			} //while ( res.is_unsatisfiable() )
 			result.setText("Satisfied");
 			status.setText("Finished");
+			QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 			return;
 		};
 	
@@ -169,6 +173,7 @@ int main(int argc, char *argv[]) {
 			const int currentStep = step.number(), newStep = currentStep + 1;
 			parse(currentStep);
 			stepLabel.setText("Step: " + QString::number(newStep));
+			QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 			step = Clingo::Number(newStep);
 			if ( haveToSolve ) {
 				solve();
