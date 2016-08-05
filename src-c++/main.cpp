@@ -179,7 +179,36 @@ int main(int argc, char *argv[]) {
 	
 	QObject::connect(&nextStepButton, &QPushButton::clicked, nextStep);
 	QObject::connect(&add,            &QPushButton::clicked, [&](void) noexcept {
+			const QStringList text(edit.text().split(' '));
+			edit.clear();
+			Clingo::SymbolSpan parameters;
 			
+			switch ( text.size() ) {
+				case 1 : {
+					
+					break;
+				} //case 1
+				case 3 : {
+					Clingo::Symbol bringArgs[2];
+					for ( int i = 0; i < 2; ++i ) {
+						bringArgs[i] = Clingo::Id(text.at(i).toStdString().c_str());
+					} //for ( int i = 0; i < 2; ++i )
+					
+					Clingo::Symbol bring = Clingo::Function("bring", {bringArgs, 2});
+					parameters = {Clingo::Number(1), bring, step};
+					break;
+				} //case 3
+				default : break; //Print error
+			} //switch ( text.size() )
+			if ( parameters.size() == 3 ) {
+				const int targetHorizon = parameters[2].number();
+				while ( horizon.number() < targetHorizon ) {
+					incrHorizon();
+				} //while ( horizon.number() < targetHorizon )
+				qDebug()<<"Grounding:"<<"set_event"<<parameters;
+				control.ground({{"set_event", parameters}});
+				solve();
+			} //if ( parameters.size() == 3 )
 			return;
 		});
 	
