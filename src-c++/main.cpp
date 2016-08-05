@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 	
 	control.ground({{"base", Clingo::SymbolSpan()}});
 	
-	Clingo::Symbol horizon(Clingo::Number(0)), step(horizon);
+	Clingo::Symbol horizon(Clingo::Number(0)), step(Clingo::Number(1));
 	Clingo::SymbolSpan horizonSpan(&horizon, 1), stepSpan(&step, 1);
 	Clingo::PartSpan horizonParts{{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
 	Clingo::PartSpan stepParts{{"finalize", stepSpan}};
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 	QLabel status(&widget);
 	QLabel result(&widget);
 	QLabel horizonLabel("Horizon: 0", &widget);
-	QLabel stepLabel("Step: 0", &widget);
+	QLabel stepLabel("Step: 1", &widget);
 	QPushButton nextStepButton("Next Step", &widget);
 	QLineEdit edit(&widget);
 	QPushButton add("Add", &widget);
