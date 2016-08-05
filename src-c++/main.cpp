@@ -14,15 +14,17 @@ int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
 	
 	Clingo::Control control;
+	Clingo::SymbolVector symbols;
 	
 	control.load("../program/graph_wg.lp");
 	control.load("../program/mailbot.lp");
 	
 	control.ground({{"base", {{}}}}); //That looks nice, eh? ;)
 	
-	Clingo::Symbol horizon(Clingo::Number(0));
-	Clingo::SymbolSpan horizonSpan(&horizon, 1);
+	Clingo::Symbol horizon(Clingo::Number(0)), step(horizon);
+	Clingo::SymbolSpan horizonSpan(&horizon, 1), stepSpan(&step, 1);
 	Clingo::PartSpan horizonParts{{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
+	Clingo::PartSpan stepParts{{"finalize", stepSpan}};
 	
 	Clingo::Symbol query(Clingo::Function("query", horizonSpan, true));
 	
@@ -67,12 +69,59 @@ int main(int argc, char *argv[]) {
 			return;
 		};
 	
-	auto nextStep = [&](void) noexcept {
+	auto parse = [&](const int step) noexcept {
 			
 			return;
 		};
 	
+	auto onModel = [&](const Clingo::Model& newModel) noexcept {
+			symbols = newModel.symbols(Clingo::ShowType::All);
+			QStringList list;
+			list.reserve(symbols.size());
+			for ( const Clingo::Symbol& s : symbols ) {
+				list.append(s.to_string().c_str());
+			} //for ( const Clingo::Symbol& s : symbols )
+			model.setStringList(list);
+			return false;
+		};
+	
+	auto solve = [&](void) noexcept {
+			status.setText("Solving");
+			result.setText(QString());
+			while ( control.solve(onModel).is_unsatisfiable() ) {
+				result.setText("Unsatisfied");
+				incrHorizon();
+			} //while ( control.solve(onModel).is_unsatisfiable() )
+			result.setText("Satisfied");
+			status.setText("Finished");
+			return;
+		};
+	
+	auto nextStep = [&](void) noexcept {
+			bool haveToSolve = false;
+			control.ground(stepParts);
+			if ( step >= horizon ) {
+				haveToSolve = true;
+				incrHorizon();
+			} //if ( step >= horizon )
+			const int currentStep = step.number(), newStep = currentStep + 1;
+			parse(currentStep);
+			stepLabel.setText("Step: " + QString::number(newStep));
+			step = Clingo::Number(newStep);
+			if ( haveToSolve ) {
+				solve();
+			} //if ( haveToSolve )
+			return;
+		};
+	
+	solve();
 	widget.show();
+	
+	QObject::connect(&nextStepButton, &QPushButton::clicked, nextStep);
+	QObject::connect(&add,            &QPushButton::clicked, [&](void) noexcept {
+			
+			return;
+		});
 	
 	return app.exec();
 }
