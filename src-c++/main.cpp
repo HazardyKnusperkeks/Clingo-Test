@@ -20,37 +20,27 @@ int main(int argc, char *argv[]) {
 	
 	control.ground({{"base", {{}}}}); //That looks nice, eh? ;)
 	
-	int horizon = 0, step = 0;
+	Clingo::Symbol horizon(Clingo::Number(0));
+	Clingo::SymbolSpan horizonSpan(&horizon, 1);
+	Clingo::PartSpan horizonParts{{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
 	
-	Clingo::Symbol t(Clingo::Number(horizon));
-	Clingo::SymbolSpan tSpan(&t, 1);
-	Clingo::PartSpan tParts{{"state", tSpan}, {"transition", tSpan}, {"query", tSpan}};
+	Clingo::Symbol query(Clingo::Function("query", horizonSpan, true));
 	
-	Clingo::Symbol query(Clingo::Function("query", tSpan, true));
-	
-	auto groundT = [&](void) noexcept {
-			control.ground(tParts);
+	auto groundHorizon = [&](void) noexcept {
+			control.ground(horizonParts);
 			control.assign_external(query, Clingo::TruthValue::True);
 			return;
 		};
 	
-	auto incrT = [&](void) noexcept {
-			control.assign_external(query, Clingo::TruthValue::False);
-			++horizon;
-			t = Clingo::Number(horizon);
-			query = Clingo::Function("query", tSpan, true);
-			groundT();
-			return;
-		};
-	
-	groundT();
+	groundHorizon();
 	
 	QWidget widget;
 	QGridLayout layout(&widget);
 	QLabel status(&widget);
 	QLabel result(&widget);
-	QPushButton start("Start", &widget);
-	QPushButton incr("Incr. t: 0", &widget);
+	QLabel horizonLabel("Horizon: 0", &widget);
+	QLabel stepLabel("Step: 0", &widget);
+	QPushButton nextStepButton("Next Step", &widget);
 	QLineEdit edit(&widget);
 	QPushButton add("Add", &widget);
 	QListView view(&widget);
@@ -58,13 +48,29 @@ int main(int argc, char *argv[]) {
 	
 	view.setModel(&model);
 	
-	layout.addWidget(&status, 0, 0);
-	layout.addWidget(&start,  0, 1);
-	layout.addWidget(&incr,   0, 2);
-	layout.addWidget(&result, 1, 0, 1, -1);
-	layout.addWidget(&edit,   2, 0, 1,  2);
-	layout.addWidget(&add,    2, 2);
-	layout.addWidget(&view,   3, 0, 1, -1);
+	layout.addWidget(&status,         0, 0);
+	layout.addWidget(&result,         0, 1);
+	layout.addWidget(&horizonLabel,   1, 0);
+	layout.addWidget(&stepLabel,      1, 1);
+	layout.addWidget(&nextStepButton, 1, 2);
+	layout.addWidget(&edit,           2, 0, 1,  2);
+	layout.addWidget(&add,            2, 2);
+	layout.addWidget(&view,           3, 0, 1, -1);
+	
+	auto incrHorizon = [&](void) noexcept {
+			control.assign_external(query, Clingo::TruthValue::False);
+			const int newHorizon = horizon.number() + 1;
+			horizonLabel.setText("Horizon: " + QString::number(newHorizon));
+			horizon = Clingo::Number(newHorizon);
+			query = Clingo::Function("query", horizonSpan, true);
+			groundHorizon();
+			return;
+		};
+	
+	auto nextStep = [&](void) noexcept {
+			
+			return;
+		};
 	
 	widget.show();
 	
