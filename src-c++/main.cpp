@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 	control.load("../program/graph_wg.lp");
 	control.load("../program/mailbot.lp");
 	
-	control.ground({{"base", {{}}}}); //That looks nice, eh? ;)
+	control.ground({{"base", Clingo::SymbolSpan()}});
 	
 	Clingo::Symbol horizon(Clingo::Number(0)), step(horizon);
 	Clingo::SymbolSpan horizonSpan(&horizon, 1), stepSpan(&step, 1);
