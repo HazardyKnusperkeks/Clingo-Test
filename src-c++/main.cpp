@@ -167,15 +167,12 @@ int main(int argc, char *argv[]) {
 		};
 	
 	auto nextStep = [&](void) noexcept {
-			bool haveToSolve = false;
 			const int currentStep = step.number(), newStep = currentStep + 1;
 			parse(currentStep);
 			stepLabel.setText("Step: " + QString::number(newStep));
 			QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 			step = Clingo::Number(newStep);
-			if ( haveToSolve ) {
-				solve();
-			} //if ( haveToSolve )
+			solve();
 			return;
 		};
 	
