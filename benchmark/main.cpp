@@ -39,12 +39,19 @@ int main(const int argc, const char *argv[]) {
 			return;
 		};
 	
-	for ( auto i = 0; i < max; ++i ) {
+	for ( auto i = 1; i <= max; ++i ) {
+		std::cout<<"Starting iteration #"<<i<<" of "<<max<<std::endl;
 		run(durations[0], blank);
+		std::cout<<"\tBlank done."<<std::endl;
 		run(durations[1], blankReactive);
+		std::cout<<"\tBlank-R done."<<std::endl;
 		run(durations[2], events);
+		std::cout<<"\tEvents done."<<std::endl;
 		run(durations[3], eventsReactive);
-	} //for ( auto i = 0; i < max; ++i )
+		std::cout<<"\tEvents-R done."<<std::endl;
+	} //for ( auto i = 1; i <= max; ++i )
+	
+	std::cout<<std::endl;
 	
 	auto out = [max](const std::vector<duration>& vec, const char *name) noexcept {
 			const auto sum = std::accumulate(vec.begin(), vec.end(), duration());
