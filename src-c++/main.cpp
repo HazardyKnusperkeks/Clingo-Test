@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
 	Clingo::Symbol horizon(Clingo::Number(0)), step(Clingo::Number(1));
 	Clingo::SymbolSpan horizonSpan(&horizon, 1), stepSpan(&step, 1);
 	Clingo::PartSpan horizonParts{{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
-	Clingo::PartSpan stepParts{{"finalize", stepSpan}};
+	Clingo::PartSpan finalizeParts{{"finalize", stepSpan}};
 	
 	Clingo::Symbol query(Clingo::Function("query", horizonSpan, true));
 	
@@ -168,8 +168,6 @@ int main(int argc, char *argv[]) {
 	
 	auto nextStep = [&](void) noexcept {
 			bool haveToSolve = false;
-//			qDebug()<<"Grounding:"<<stepParts;
-//			control.ground(stepParts);
 			const int currentStep = step.number(), newStep = currentStep + 1;
 			parse(currentStep);
 			stepLabel.setText("Step: " + QString::number(newStep));
