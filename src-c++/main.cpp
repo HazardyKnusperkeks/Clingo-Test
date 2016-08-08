@@ -137,6 +137,10 @@ int main(int argc, char *argv[]) {
 				if ( args.size() == 3 && std::strcmp(s.name(), "do") == 0 && args[2].number() == step ) {
 					qDebug()<<"Grounding: commit"<<args;
 					control.ground({{"commit", args}});
+					
+					const Clingo::SymbolSpan setEventArgs{args[0], Clingo::Id("success"), args[2]};
+					qDebug()<<"Grounding: set_event"<<setEventArgs;
+					control.ground({{"set_event", setEventArgs}});
 				} //if ( args.size() == 3 && std::strcmp(s.name(), "do") == 0 && args[2].number() == step )
 			} //for ( const Clingo::Symbol& s : symbols )
 			return;
