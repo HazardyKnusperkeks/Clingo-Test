@@ -115,7 +115,7 @@ int main(const int argc, const char *argv[]) {
 	auto out = [max](const std::vector<duration>& vec, const char *name) noexcept {
 			const auto sum = std::accumulate(vec.begin(), vec.end(), duration());
 			const auto avg = sum / max;
-			std::cout<<std::setw(15)<<name<<": "<<(avg.count() / 1000.)<<" ms"<<std::endl;
+			std::cout<<std::setw(15)<<name<<": "<<(avg.count() / 1000000.)<<" s"<<std::endl;
 			return;
 		};
 	
