@@ -1,3 +1,5 @@
+#include <clingo.hh>
+
 #include <chrono>
 #include <functional>
 #include <iomanip>
@@ -5,13 +7,70 @@
 #include <numeric>
 #include <vector>
 
+constexpr auto maxStep = 100;
+
+Clingo::SymbolVector symbols;
+
+void groundHorizon(Clingo::Control& control, const Clingo::PartSpan& horizonParts, const Clingo::Symbol& query) noexcept {
+	control.ground(horizonParts);
+	control.assign_external(query, Clingo::TruthValue::True);
+	return;
+}
+
+bool onModel(const Clingo::Model& newModel) noexcept {
+	symbols = newModel.symbols(Clingo::ShowType::All);
+	return false;
+}
+
 void blank(void) noexcept {
-	
+	for ( int step = 1; step <= maxStep; ++step ) {
+		Clingo::Control control;
+		
+		control.load("../program/graph_wg.lp");
+		control.load("../program/mailbot.lp");
+		
+		control.ground({{"base", Clingo::SymbolSpan()}});
+		
+		Clingo::Symbol horizon(Clingo::Number(0)), stepSymbol(Clingo::Number(1));
+		Clingo::SymbolSpan horizonSpan(&horizon, 1), stepSpan(&stepSymbol, 1);
+		Clingo::PartSpan horizonParts{{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
+		Clingo::PartSpan finalizeParts{{"finalize", stepSpan}};
+		
+		Clingo::Symbol query(Clingo::Function("query", horizonSpan, true));
+		
+		groundHorizon(control, horizonParts, query);
+		for ( int tempStep = 1; tempStep <= step; ++ tempStep ) {
+			stepSymbol = Clingo::Number(tempStep);
+			control.ground(finalizeParts);
+		} //for ( int tempStep = 1; tempStep <= step; ++ tempStep )
+		
+		control.solve(onModel);
+	} //for ( int step = 1; step <= maxStep; ++step )
 	return;
 }
 
 void blankReactive(void) noexcept {
+	Clingo::Control control;
 	
+	control.load("../program/graph_wg.lp");
+	control.load("../program/mailbot.lp");
+	
+	control.ground({{"base", Clingo::SymbolSpan()}});
+	
+	Clingo::Symbol horizon(Clingo::Number(0)), stepSymbol(Clingo::Number(1));
+	Clingo::SymbolSpan horizonSpan(&horizon, 1), stepSpan(&stepSymbol, 1);
+	Clingo::PartSpan horizonParts{{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
+	Clingo::PartSpan finalizeParts{{"finalize", stepSpan}};
+	
+	Clingo::Symbol query(Clingo::Function("query", horizonSpan, true));
+	
+	groundHorizon(control, horizonParts, query);
+	
+	for ( int step = 1; step <= maxStep; ++step ) {
+		stepSymbol = Clingo::Number(step);
+		control.ground(finalizeParts);
+		control.solve(onModel);
+	} //for ( int step = 1; step <= maxStep; ++step )
 	return;
 }
 
