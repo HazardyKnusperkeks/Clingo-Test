@@ -132,7 +132,13 @@ int main(int argc, char *argv[]) {
 		};
 	
 	auto parse = [&](const int step) noexcept {
-			
+			for ( const Clingo::Symbol& s : symbols ) {
+				const auto args(s.arguments());
+				if ( args.size() == 3 && std::strcmp(s.name(), "do") == 0 && args[2].number() == step ) {
+					qDebug()<<"Grounding: commit"<<args;
+					control.ground({{"commit", args}});
+				} //if ( args.size() == 3 && std::strcmp(s.name(), "do") == 0 && args[2].number() == step )
+			} //for ( const Clingo::Symbol& s : symbols )
 			return;
 		};
 	
