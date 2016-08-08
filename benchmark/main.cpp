@@ -39,10 +39,10 @@ void blank(void) noexcept {
 		Clingo::Symbol query(Clingo::Function("query", horizonSpan, true));
 		
 		groundHorizon(control, horizonParts, query);
-		for ( int tempStep = 1; tempStep <= step; ++ tempStep ) {
+		for ( int tempStep = 1; tempStep <= step; ++tempStep ) {
 			stepSymbol = Clingo::Number(tempStep);
 			control.ground(finalizeParts);
-		} //for ( int tempStep = 1; tempStep <= step; ++ tempStep )
+		} //for ( int tempStep = 1; tempStep <= step; ++tempStep )
 		
 		control.solve(onModel);
 	} //for ( int step = 1; step <= maxStep; ++step )
