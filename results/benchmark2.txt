@@ -1,0 +1,4 @@
+100 steps
+   Normal: 4835.42 s
+ Reactive: 2636.46 s
+
