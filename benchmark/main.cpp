@@ -39,7 +39,8 @@ void blank(void) noexcept {
 		
 		Clingo::Symbol horizon(Clingo::Number(0)), stepSymbol(Clingo::Number(1));
 		Clingo::SymbolSpan horizonSpan(&horizon, 1), stepSpan(&stepSymbol, 1);
-		Clingo::PartSpan horizonParts{{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
+		Clingo::Part horizonPartsArray[3] = {{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
+		Clingo::PartSpan horizonParts(horizonPartsArray, 3);
 		Clingo::PartSpan finalizeParts{{"finalize", stepSpan}};
 		
 		Clingo::Symbol query(Clingo::Function("query", horizonSpan, true));
@@ -66,7 +67,8 @@ void blankReactive(void) noexcept {
 	
 	Clingo::Symbol horizon(Clingo::Number(0)), stepSymbol(Clingo::Number(1));
 	Clingo::SymbolSpan horizonSpan(&horizon, 1), stepSpan(&stepSymbol, 1);
-	Clingo::PartSpan horizonParts{{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
+	Clingo::Part horizonPartsArray[3] = {{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
+	Clingo::PartSpan horizonParts(horizonPartsArray, 3);
 	Clingo::PartSpan finalizeParts{{"finalize", stepSpan}};
 	
 	Clingo::Symbol query(Clingo::Function("query", horizonSpan, true));
@@ -128,13 +130,13 @@ bool addEvent(Clingo::Control& control, const int step) noexcept {
 		case  4 : jobID = 2; bring("o7", "o5");  break;
 		case  8 : jobID = 3; bring("o1", "o2");  break;
 		case  9 : jobID = 3; cancel();           break;
-		case 17 : jobID = 3; bring("o2", "o8");  break;
-		case 27 : jobID = 1; bring("o12", "o9"); break;
-		case 37 : jobID = 2; bring("o5", "o11"); break;
-		case 42 : jobID = 2; cancel();           break;
-		case 58 : jobID = 3; bring("o3", "o8");  break;
-		case 77 : jobID = 2; bring("o11", "o4"); break;
-		case 88 : jobID = 1; bring("o6", "o10"); break;
+		case 22 : jobID = 1; bring("o12", "o9"); break;
+		case 24 : jobID = 2; bring("o5", "o11"); break;
+		case 36 : jobID = 2; cancel();           break;
+		case 37 : jobID = 3; bring("o2", "o8");  break;
+		case 40 : jobID = 1; bring("o3", "o8");  break;
+		case 42 : jobID = 2; bring("o11", "o4"); break;
+		case 64 : jobID = 3; bring("o6", "o10"); break;
 		default : return false;
 	} //switch ( step )
 	
@@ -144,7 +146,6 @@ bool addEvent(Clingo::Control& control, const int step) noexcept {
 }
 
 void events(void) noexcept {
-	return; //fixme
 	symbols.clear();
 	int oldHorizon = 0;
 	
@@ -156,40 +157,30 @@ void events(void) noexcept {
 		
 		control.ground({{"base", Clingo::SymbolSpan()}});
 		
-		Clingo::Symbol horizon(Clingo::Number(0)), stepSymbol(Clingo::Number(1));
-		Clingo::SymbolSpan horizonSpan(&horizon, 1), stepSpan(&stepSymbol, 1);
-		Clingo::PartSpan horizonParts{{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
-		Clingo::PartSpan finalizeParts{{"finalize", stepSpan}};
+		Clingo::Symbol horizon(Clingo::Number(0));
+		Clingo::SymbolSpan horizonSpan(&horizon, 1);
+		Clingo::Part horizonPartsArray[3] = {{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
+		Clingo::PartSpan horizonParts(horizonPartsArray, 3);
 		
 		Clingo::Symbol query(Clingo::Function("query", horizonSpan, true));
 		
 		groundHorizon(control, horizonParts, query);
 		
 		for ( int tempStep = 1; tempStep <= step; ++tempStep ) {
-			bool finalize = true;
-			
-			if ( tempStep < oldHorizon ) {
+			if ( tempStep < oldHorizon && horizon.number() < tempStep ) {
 				setHorizon(control, query, horizonParts, horizon, horizonSpan, tempStep);
-			} //if ( tempStep < oldHorizon )
+			} //if ( tempStep < oldHorizon && horizon.number() < tempStep )
 			if ( addEvent(control, tempStep) ) {
-				finalize = false;
-				if ( horizon.number() < tempStep ) {
-					setHorizon(control, query, horizonParts, horizon, horizonSpan, step);
-				} //if ( horizon.number() < tempStep )
+				while ( horizon.number() < tempStep ) {
+					incrHorizon(control, query, horizonParts, horizon, horizonSpan);
+				} //while ( horizon.number() < tempStep )
 				while ( control.solve(onModelNoOp).is_unsatisfiable() ) {
 					incrHorizon(control, query, horizonParts, horizon, horizonSpan);
 				} //while ( control.solve(onModelNoOp).is_unsatisfiable() )
 			} //if ( addEvent(control, tempStep) )
 			if ( parse(control, tempStep) ) {
-				finalize = false;
 				control.solve(onModelNoOp);
 			} //if ( parse(control, tempStep) )
-			
-			if ( finalize ) {
-				stepSymbol = Clingo::Number(tempStep);
-				control.ground(finalizeParts);
-				control.solve(onModelNoOp);
-			} //if ( finalize )
 		} //for ( int tempStep = 1; tempStep <= step; ++tempStep )
 		
 		control.solve(onModel);
@@ -207,37 +198,29 @@ void eventsReactive(void) noexcept {
 	
 	control.ground({{"base", Clingo::SymbolSpan()}});
 	
-	Clingo::Symbol horizon(Clingo::Number(0)), stepSymbol(Clingo::Number(1));
-	Clingo::SymbolSpan horizonSpan(&horizon, 1), stepSpan(&stepSymbol, 1);
-	Clingo::PartSpan horizonParts{{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
-	Clingo::PartSpan finalizeParts{{"finalize", stepSpan}};
+	Clingo::Symbol horizon(Clingo::Number(0));
+	Clingo::SymbolSpan horizonSpan(&horizon, 1);
+	Clingo::Part horizonPartsArray[3] = {{"state", horizonSpan}, {"transition", horizonSpan}, {"query", horizonSpan}};
+	Clingo::PartSpan horizonParts(horizonPartsArray, 3);
 	
 	Clingo::Symbol query(Clingo::Function("query", horizonSpan, true));
 	
 	groundHorizon(control, horizonParts, query);
 	
 	for ( int step = 1; step <= maxStep; ++step ) {
-		bool finalize = true;
 		
 		if ( addEvent(control, step) ) {
-			finalize = false;
-			if ( horizon.number() < step ) {
-				setHorizon(control, query, horizonParts, horizon, horizonSpan, step);
-			} //if ( horizon.number() < step )
+			while ( horizon.number() < step ) {
+				incrHorizon(control, query, horizonParts, horizon, horizonSpan);
+			} //while ( horizon.number() < step )
 			while ( control.solve(onModel).is_unsatisfiable() ) {
 				incrHorizon(control, query, horizonParts, horizon, horizonSpan);
 			} //while ( control.solve(onModel).is_unsatisfiable() )
 		} //if ( addEvent(control, step) )
 		if ( parse(control, step) ) {
-			finalize = false;
 			control.solve(onModel);
 		} //if ( parse(control, step) )
 		
-		if ( finalize ) {
-			stepSymbol = Clingo::Number(step);
-			control.ground(finalizeParts);
-			control.solve(onModel);
-		} //if ( finalize )
 	} //for ( int step = 1; step <= maxStep; ++step )
 	return;
 }
