@@ -10,8 +10,8 @@ INCLUDEPATH	*= $(HOME)/clingo/libclasp\
 			   $(HOME)/clingo/liblp\
 			   $(HOME)/clingo/libprogram_opts
 
-LIBS		*= -L$(HOME)/clingo/build/debug/\
-			   -Wl,-rpath=$(HOME)/clingo/build/debug/\
+LIBS		*= -L$(HOME)/clingo/build/release/\
+			   -Wl,-rpath=$(HOME)/clingo/build/release/\
 			   -lclingo
 
 DEFINES		*= WITH_THREADS=1
